@@ -96,8 +96,3 @@ The named AWS profile used to authenticate and interact with AWS services. Must 
 
 #### `region` (required)
 The AWS region your resources will be located in.
-
-<br/>
-> [stackabuse.com](http://stackabuse.com) &nbsp;&middot;&nbsp;
-> Twitter [@ScottWRobinson](https://twitter.com/scottwrobinson) &nbsp;&middot;&nbsp;
-> GitHub [@ScottWRobinson](https://github.com/scottwrobinson)
