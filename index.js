@@ -27,6 +27,10 @@ module.exports = function(params, options) {
         if (!params.s3.key) throw gulpError('If uploading via S3, a key must be provided');
     }
 
+    if (params.alias && !params.publish) {
+        throw gulpError('An alias was provided but \'publish\' was \'false\'.');
+    }
+
     AWS.config.credentials = new AWS.SharedIniFileCredentials({
         profile: options.profile
     });
@@ -82,12 +86,16 @@ module.exports = function(params, options) {
         }).then(function(hasFunction) {
             if (hasFunction) {
                 // ...if it does, then update code/config...
-                return updateFunctionCode(lambda, params).then(function() {
-                    return updateFunctionConfiguration(lambda, params);
+                return updateFunctionConfiguration(lambda, params).then(function() {
+                    return updateFunctionCode(lambda, params);
                 });
             }
             // ...if it doesn't, then create it
             return createFunction(lambda, params);
+        }).then(function(upsertedFunction) {
+            if (params.alias) {
+                return upsertAlias(lambda, upsertedFunction.Version, params);
+            }
         }).then(function() {
             done();
         }).catch(function(err) {
@@ -130,9 +138,16 @@ function hasLambdaFunction(lambda, targetFunction) {
 }
 
 function updateFunctionCode(lambda, params) {
+    // We give the 'publish' param to this method and NOT
+    // 'updateFunctionConfiguration' since only this update
+    // function takes Publish as a param. This should 
+    // always be called AFTER 'updateFunctionConfiguration'
+    // so that the updated function is properly published,
+    // if needed.
+
     var lamparams = {
-        Publish: params.publish,
-        FunctionName: params.name
+        FunctionName: params.name,
+        Publish: params.publish
     };
 
     if (params.s3) {
@@ -155,7 +170,7 @@ function updateFunctionConfiguration(lambda, params) {
         FunctionName: params.name,
         Role: params.role,
         Handler: params.handler || DEFAULT_PARAMS.handler,
-        Runtime: params.runtime || DEFAULT_PARAMS.runtime,
+        Runtime: params.runtime || DEFAULT_PARAMS.runtime
     };
 
     if (params.description) lamparams.Description = params.description;
@@ -183,7 +198,8 @@ function createFunction(lambda, params) {
         FunctionName: params.name,
         Handler: params.handler || DEFAULT_PARAMS.handler,
         Runtime: params.runtime || DEFAULT_PARAMS.runtime,
-        Role: params.role
+        Role: params.role,
+        Publish: params.publish
     };
 
     if (params.description) lamparams.Description = params.description;
@@ -194,5 +210,64 @@ function createFunction(lambda, params) {
             if (err) return reject(err);
             resolve(data);
         });
+    });
+}
+
+function getAlias(lambda, params) {
+    var lamparams = {
+        FunctionName: params.name,
+        Name: params.alias
+    };
+
+    return new Promise(function(resolve, reject) {
+        lambda.getAlias(lamparams, function(err, data) {
+            if (err && err.code !== 'ResourceNotFoundException') {
+                return reject(err);
+            }
+            resolve(data);
+        });
+    });
+}
+
+function createAlias(lambda, version, params) {
+    var lamparams = {
+        FunctionName: params.name,
+        FunctionVersion: version,
+        Name: params.alias
+    };
+
+    return new Promise(function(resolve, reject) {
+        lambda.createAlias(lamparams, function(err, data) {
+            if (err) return reject(err);
+            resolve(data);
+        });
+    });
+}
+
+function updateAlias(lambda, version, params) {
+    var lamparams = {
+        FunctionName: params.name,
+        FunctionVersion: version,
+        Name: params.alias
+    };
+
+    return new Promise(function(resolve, reject) {
+        lambda.updateAlias(lamparams, function(err, data) {
+            if (err) return reject(err);
+            resolve(data);
+        });
+    });
+}
+
+function upsertAlias(lambda, version, params) {
+    var lamparams = {
+        FunctionName: params.name,
+        FunctionVersion: version,
+        Name: params.alias
+    };
+
+    return getAlias(lambda, params).then(function(alias) {
+        if (!alias) return createAlias(lambda, version, params);
+        return updateAlias(lambda, version, params);
     });
 }
