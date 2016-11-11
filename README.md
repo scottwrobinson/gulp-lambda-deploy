@@ -81,6 +81,9 @@ The runtime for your code. Defaults to `nodejs4.3`.
 #### `publish`
 A boolean indidcating if you want to publish a new version of the function.
 
+#### `alias`
+The name of an alias to point to this function. If this alias doesn't already exist, it will be created.
+
 #### `description`
 A string describing the Lambda function.
 
