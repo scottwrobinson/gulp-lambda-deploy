@@ -173,6 +173,10 @@ function updateFunctionConfiguration(lambda, params) {
         Runtime: params.runtime || DEFAULT_PARAMS.runtime
     };
 
+    if (params.memory) {
+        lamparams.MemorySize = params.memory;
+    }
+
     if (params.description) lamparams.Description = params.description;
     if (params.timeout) lamparams.Timeout = params.timeout;
 
@@ -201,6 +205,10 @@ function createFunction(lambda, params) {
         Role: params.role,
         Publish: params.publish
     };
+
+    if (params.memory) {
+        lamparams.MemorySize = params.memory;
+    }
 
     if (params.description) lamparams.Description = params.description;
     if (params.timeout) lamparams.Timeout = params.timeout;

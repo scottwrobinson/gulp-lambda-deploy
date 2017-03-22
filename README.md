@@ -90,6 +90,9 @@ A string describing the Lambda function.
 #### `timeout`
 The time in seconds that the function is allowed to run on each invocation.
 
+#### `memory`
+The amount of memory, in MB, your Lambda function is given.
+
 ### `options`
 
 Options for configuring the AWS environment.
