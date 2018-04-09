@@ -140,7 +140,7 @@ function hasLambdaFunction(lambda, targetFunction) {
 function updateFunctionCode(lambda, params) {
     // We give the 'publish' param to this method and NOT
     // 'updateFunctionConfiguration' since only this update
-    // function takes Publish as a param. This should 
+    // function takes Publish as a param. This should
     // always be called AFTER 'updateFunctionConfiguration'
     // so that the updated function is properly published,
     // if needed.
@@ -180,6 +180,13 @@ function updateFunctionConfiguration(lambda, params) {
     if (params.description) lamparams.Description = params.description;
     if (params.timeout) lamparams.Timeout = params.timeout;
 
+    if (params.subnets && params.securityGroups) {
+      lamparams.VpcConfig = {
+        SubnetIds: typeof params.subnets === 'string'? [params.subnets] : params.subnets,
+        SecurityGroupIds: typeof params.securityGroups === 'string' ? [params.securityGroups] : params.securityGroups,
+      }
+    }
+
     return new Promise(function(resolve, reject) {
         lambda.updateFunctionConfiguration(lamparams, function(err, data) {
             if (err) return reject(err);
@@ -212,6 +219,13 @@ function createFunction(lambda, params) {
 
     if (params.description) lamparams.Description = params.description;
     if (params.timeout) lamparams.Timeout = params.timeout;
+
+    if (params.subnets && params.securityGroups) {
+      lamparams.VpcConfig = {
+        SubnetIds: typeof params.subnets === 'string' ? [params.subnets] : params.subnets,
+        SecurityGroupIds: typeof params.securityGroups === 'string' ? [params.securityGroups] : params.securityGroups,
+      }
+    }
 
     return new Promise(function(resolve, reject) {
         lambda.createFunction(lamparams, function(err, data) {
