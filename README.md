@@ -25,7 +25,9 @@ let params = {
     s3: {
         bucket: '...',
         key: '...'
-    }
+    },
+    subnets: [..., ...],
+    securityGroups: '...'
 };
 
 let options = {
@@ -92,6 +94,12 @@ The time in seconds that the function is allowed to run on each invocation.
 
 #### `memory`
 The amount of memory, in MB, your Lambda function is given.
+
+#### `subnets`
+The ids of subnets to create the Lambda function into, if you want to create it in a VPC (a string or an array of strings).
+
+#### `securityGroups`
+The security groups to add to the Lambda function if created in a VPC (a string or an array of strings).
 
 ### `options`
 
