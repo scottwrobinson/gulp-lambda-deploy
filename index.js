@@ -99,7 +99,7 @@ module.exports = function(params, options) {
         }).then(function() {
             done();
         }).catch(function(err) {
-            done(err);
+            done(gulpError(err.message));
         });
     };
 
